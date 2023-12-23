@@ -61,8 +61,9 @@ create_vm(){
 
     log "VM successfully created!"
     log "VM name: ${vm_name}"
-    log "VM password: ${password}"
-    log "Use 'virsh' or 'virt-manager' to see more information."
+    log "Debian username: ${username}"
+    log "Debian password: ${password}"
+    log "Use virsh or virt-manager to see more information."
 }
 
 main(){
