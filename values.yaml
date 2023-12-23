@@ -1,0 +1,8 @@
+vm:
+  name:		    # VM name
+  hostName:	  # VM host name
+  domainName:	# VM domain name
+user:
+  firstName:	# First name of user
+  lastName:	  # Last name of user
+  userName:   # Debian username
