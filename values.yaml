@@ -1,7 +1,7 @@
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
-  memory: 2048           # Memory allocation in MB
+  memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
 os:
   version: debian12      # Debian version

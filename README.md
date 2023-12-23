@@ -16,7 +16,7 @@ Note that the YAML file passed to the script does not need to be named `values.y
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
-  memory: 2048           # Memory allocation in MB
+  memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
 os:
   version: debian12      # Debian version
@@ -69,7 +69,7 @@ Accepts a single argument, the path to a YAML file with the following structure:
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
-  memory: 2048           # Memory allocation in MB
+  memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
 os:
   version: debian12      # Debian version
@@ -89,7 +89,7 @@ $ cat <<-"EOF" > values.yaml
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
-  memory: 2048           # Memory allocation in MB
+  memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
 os:
   version: debian12      # Debian version

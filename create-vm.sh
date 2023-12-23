@@ -21,7 +21,7 @@ help(){
     echo "vm:"
     echo -e "  name: debian           # VM name"
     echo -e "  cpu: 2                 # CPU allocation in vCPUs"
-    echo -e "  memory: 2048           # Memory allocation in MB"
+    echo -e "  memory: 2048           # Memory allocation in MiB"
     echo -e "  diskSize: 20           # Virtual disk size in GB"
     echo "os:"
     echo -e "  version: debian12      # Debian version"
