@@ -3,6 +3,7 @@
 .
 ├── create-vm.sh
 ├── preseed-template.cfg
+├── README.md
 └── values.yaml
 ```
 [create-vm.sh](./create-vm.sh) creates a headless Debian VM using [libvirt](https://libvirt.org/), [QEMU](https://www.qemu.org/), and [KVM](https://linux-kvm.org/page/Main_Page). The script creates a [preseed.cfg](https://wiki.debian.org/DebianInstaller/Preseed) file that automates the installation of Debian on the VM, forgoing the need to manually click through the installation options. 
