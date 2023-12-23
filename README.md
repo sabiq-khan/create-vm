@@ -30,27 +30,27 @@ user:
 # Installation
 1) Ensure you have `libvirt`, `QEMU`, and `KVM` installed.
 - Since this script requires `KVM`, it is intended to be run on a Linux system.
-- These packages can be installed on Debian-based distros with the following commands:
+- These packages can be installed on Debian-based distros with the [following commands](https://ubuntu.com/server/docs/virtualization-libvirt):
     ```
     sudo apt update && sudo apt upgrade
     sudo apt install -y qemu-kvm libvirt-clients libvirt-daemon-system virtinst bridge-utils
     ```
-- On RPM-based distros, the following command can be used instead:
+- On RPM-based distros, the [following command](https://docs.fedoraproject.org/en-US/quick-docs/virtualization-getting-started/) can be used instead:
     ```
     sudo dnf install @virtualization
     ```
 2) Ensure that you have `yq` installed since the script requires it to parse the YAML file. 
-- `yq` can be installed with the following command:
+- `yq` can be installed with the [following command](https://pypi.org/project/yq/):
     ```
     pip3 install yq
     ```
 
-3) Ensure that you've downloaded the disk image of the Debian version you want to install on the VM.
+3) Ensure that you've downloaded the disk image of the [Debian version](https://www.debian.org/download) you want to install on the VM.
 - You can move this disk image into `/var/lib/libvirt/images` for better organization.
 
-4) Clone this repo with `git clone https://github.com/sabiq-khan/create-vm.git`.
+4) Clone this repo by running `git clone https://github.com/sabiq-khan/create-vm.git`.
 
-5) Navigate to to the `create-vm` directory and make the script executable with `chmod u+x create-vm.sh`.
+5) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
 
 # Usage
 If the script is run with no parameters, it prints a help message.
