@@ -46,26 +46,26 @@ user:
 # Usage
 If the script is run with no parameters, it prints a help message.
 ```
-$ ./create-vm.sh
+$ ./create-vm.sh 
 
 USAGE: ./create-vm.sh [yaml_file_with_parameters]
 
 Creates a Debian VM with the parameters in the provided YAML file.
 
 ARGUMENTS:
-	Accepts a single argument, the path to a YAML file with the following structure.
+Accepts a single argument, the path to a YAML file with the following structure:
 
-	# Example YAML file
-	vm:
-	  name:		    # VM name
-	  hostName:	    # VM host name
-	  domainName:	# VM domain name
-	user:
-	  firstName:	# First name of user
-	  lastName:	    # Last name of user
-	  userName:	    # Debian username
+# Example YAML file
+vm:
+  name:		# VM name
+  hostName:	# VM host name
+  domainName:	# VM domain name
+user:
+  firstName:	# First name of user
+  lastName:	# Last name of user
+  userName:	# Debian username
 
-	If no argument is passed, this help message is printed.
+If no argument is passed, this help message is printed.
 ```
 
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
