@@ -1,8 +1,13 @@
 vm:
-  name:       # VM name
-  hostName:   # VM host name
-  domainName: # VM domain name
+  name: debian           # VM name
+  cpu: 2                 # CPU allocation in vCPUs
+  memory: 2048           # Memory allocation in MB
+  diskSize: 20           # Virtual disk size in GB
+os:
+  version: debian12      # Debian version
+  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  hostName: debian       # VM host name
+  domainName: debian     # VM domain name
 user:
-  firstName:  # First name of user
-  lastName:   # Last name of user
-  userName:   # Debian username
+  fullName: debian-user  # Debian user full name (does not have to be a real name)
+  userName: debian-user  # Debian username

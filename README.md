@@ -5,21 +5,26 @@
 ├── preseed-template.cfg
 └── values.yaml
 ```
-`create-vm.sh` creates a VM using `libvirt`, `QEMU`, and `KVM`. The script creates a `preseed.cfg` file that automates the installation of Debian on the VM, forgoing the need to manually click through the installation options. 
+[create-vm.sh](./create-vm.sh) creates a headless Debian VM using [libvirt](https://libvirt.org/), [QEMU](https://www.qemu.org/), and [KVM](https://linux-kvm.org/page/Main_Page). The script creates a [preseed.cfg](https://wiki.debian.org/DebianInstaller/Preseed) file that automates the installation of Debian on the VM, forgoing the need to manually click through the installation options. 
 
-`preseed-template.cfg` provides a template for the `preseed.cfg` file created during the execution of the script. `values.yaml` is an example of a YAML file that can be passed as an argument to the script. The script reads the parameters passed in the YAML file to substitute placeholder values in `preseed-template.cfg` in order to create the final `preseed.cfg` file. 
+[preseed-template.cfg](./preseed-template.cfg) provides a template for the `preseed.cfg` file created during the execution of the script. [values.yaml](./values.yaml) is an example of a YAML file that can be passed as an argument to the script. The script reads the parameters passed in the YAML file to substitute placeholder values in `preseed-template.cfg` in order to create the final `preseed.cfg` file. 
 
 Note that the YAML file passed to the script does not need to be named `values.yaml` or located in the same directory. Any YAML file with the following structure can be passed as an argument:
 ```
 # Example YAML file
 vm:
-  name:       # VM name
-  hostName:   # VM host name
-  domainName: # VM domain name
+  name: debian           # VM name
+  cpu: 2                 # CPU allocation in vCPUs
+  memory: 2048           # Memory allocation in MB
+  diskSize: 20           # Virtual disk size in GB
+os:
+  version: debian12      # Debian version
+  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  hostName: debian       # VM host name
+  domainName: debian     # VM domain name
 user:
-  firstName:  # First name of user
-  lastName:   # Last name of user
-  userName:   # Debian username
+  fullName: debian-user  # Debian user full name (does not have to be a real name)
+  userName: debian-user  # Debian username
 ```
 
 # Installation
@@ -39,14 +44,18 @@ user:
     ```
     pip3 install yq
     ```
-3) Clone this repo with `git clone https://github.com/sabiq-khan/create-vm.git`.
 
-4) Navigate to to the `create-vm` directory and make the script executable with `chmod u+x create-vm.sh`.
+3) Ensure that you've downloaded the disk image of the Debian version you want to install on the VM.
+- You can move this disk image into `/var/lib/libvirt/images` for better organization.
+
+4) Clone this repo with `git clone https://github.com/sabiq-khan/create-vm.git`.
+
+5) Navigate to to the `create-vm` directory and make the script executable with `chmod u+x create-vm.sh`.
 
 # Usage
 If the script is run with no parameters, it prints a help message.
 ```
-$ ./create-vm.sh 
+$ ./create-vm.sh
 
 USAGE: ./create-vm.sh [yaml_file_with_parameters]
 
@@ -57,13 +66,18 @@ Accepts a single argument, the path to a YAML file with the following structure:
 
 # Example YAML file
 vm:
-  name:		# VM name
-  hostName:	# VM host name
-  domainName:	# VM domain name
+  name: debian           # VM name
+  cpu: 2                 # CPU allocation in vCPUs
+  memory: 2048           # Memory allocation in MB
+  diskSize: 20           # Virtual disk size in GB
+os:
+  version: debian12      # Debian version
+  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  hostName: debian       # VM host name
+  domainName: debian     # VM domain name
 user:
-  firstName:	# First name of user
-  lastName:	# Last name of user
-  userName:	# Debian username
+  fullName: debian-user  # Debian user full name (does not have to be a real name)
+  userName: debian-user  # Debian username
 
 If no argument is passed, this help message is printed.
 ```
@@ -72,14 +86,18 @@ To create a VM, fill out the parameters in `values.yaml` or whatever YAML file y
 ```
 $ cat <<-"EOF" > values.yaml
 vm:
-  name: debian
-  hostName: debian
-  domainName: debian
+  name: debian           # VM name
+  cpu: 2                 # CPU allocation in vCPUs
+  memory: 2048           # Memory allocation in MB
+  diskSize: 20           # Virtual disk size in GB
+os:
+  version: debian12      # Debian version
+  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  hostName: debian       # VM host name
+  domainName: debian     # VM domain name
 user:
-  firstName: First
-  lastName: Last
-  userName: debian-user
-EOF
+  fullName: debian-user  # Debian user full name (does not have to be a real name)
+  userName: debian-user  # Debian username
 ```
 Then, run the script and pass the path to the YAML file as an argument:
 ```
@@ -113,7 +131,7 @@ Security DOI:   0
 [2023-12-22T17:53:39-08:00] Use 'virsh' or 'virt-manager' to see more information.
 ```
 
-After the VM is successfully created, the script prints your Debian username and password to the screen. You can then use `virsh` to boot the VM and find its IP and use `ssh` to connect to it.
+After the VM is successfully created, the script prints your Debian username and password to the screen. The [preseed file](./preseed-template.cfg#L53) includes a directive to install `sshd` on the VM. Thus, you can use [virsh](https://www.libvirt.org/manpages/virsh.html) to boot the VM and find its IP and then `ssh` into it.
 ```
 $ virsh start debian
 Domain 'debian' started
