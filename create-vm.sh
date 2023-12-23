@@ -13,11 +13,11 @@ catch(){
 }
 
 help(){
-    echo -e "\nUSAGE: ./create-vm.sh [values.yaml]\n"
+    echo -e "\nUSAGE: ./create-vm.sh [yaml_file_with_parameters]\n"
     echo -e "Creates a Debian VM with the parameters in the provided YAML file.\n"
     echo "ARGUMENTS:"
-    echo -e "\tAccepts a single argument, the path to a YAML file containing the below parameters.\n"
-    echo -e "\t# Example values.yaml file"
+    echo -e "\tAccepts a single argument, the path to a YAML file with the following structure.\n"
+    echo -e "\t# Example YAML file"
     echo -e "\tvm:"
     echo -e "\t  name:\t\t# VM name"
     echo -e "\t  hostName:\t# VM host name"
