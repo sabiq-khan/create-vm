@@ -13,19 +13,29 @@
 Note that the YAML file passed to the script does not need to be named `values.yaml` or located in the same directory. Any YAML file with the following structure can be passed as an argument:
 ```
 # Example YAML file
+
+# VM settings
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
   memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
+  network: default       # 'default' uses libvirt NAT network, otherwise specify name of bridge
+  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
+
+# OS settings
 os:
-  version: debian12      # Debian version
+  version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
+
+# User settings
 user:
-  fullName: debian-user  # Debian user full name (does not have to be a real name)
-  userName: debian-user  # Debian username
+  fullName: debian-user  # Linux user full name (does not have to be a real name)
+  userName: debian-user  # Linux username
+
+If no argument is passed, this help message is printed.
 ```
 
 # Installation
@@ -66,19 +76,27 @@ ARGUMENTS:
 Accepts a single argument, the path to a YAML file with the following structure:
 
 # Example YAML file
+
+# VM settings
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
   memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
+  network: default       # 'default' uses libvirt NAT network, otherwise specify name of bridge
+  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
+
+# OS settings
 os:
-  version: debian12      # Debian version
+  version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
+
+# User settings
 user:
-  fullName: debian-user  # Debian user full name (does not have to be a real name)
-  userName: debian-user  # Debian username
+  fullName: debian-user  # Linux user full name (does not have to be a real name)
+  userName: debian-user  # Linux username
 
 If no argument is passed, this help message is printed.
 ```
@@ -86,19 +104,28 @@ If no argument is passed, this help message is printed.
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
 ```
 $ cat <<-"EOF" > values.yaml
+# VM settings
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
   memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
+  network: network=default       # Enables libvirt NAT networking
+  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
+
+# OS settings
 os:
-  version: debian12      # Debian version
+  version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
+
+# User settings
 user:
-  fullName: debian-user  # Debian user full name (does not have to be a real name)
-  userName: debian-user  # Debian username
+  fullName: debian-user  # Linux user full name (does not have to be a real name)
+  userName: debian-user  # Linux username
+
+EOF
 ```
 Then, run the script and pass the path to the YAML file as an argument:
 ```

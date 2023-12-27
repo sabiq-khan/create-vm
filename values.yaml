@@ -1,13 +1,20 @@
+# VM settings
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
   memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
+  network: network=default       # Enables libvirt NAT networking
+  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
+
+# OS settings
 os:
-  version: debian12      # Debian version
+  version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
+
+# User settings
 user:
-  fullName: debian-user  # Debian user full name (does not have to be a real name)
-  userName: debian-user  # Debian username
+  fullName: debian-user  # Linux user full name (does not have to be a real name)
+  userName: debian-user  # Linux username

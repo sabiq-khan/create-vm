@@ -18,19 +18,24 @@ help(){
     echo "ARGUMENTS:"
     echo -e "Accepts a single argument, the path to a YAML file with the following structure:\n"
     echo "# Example YAML file"
+    echo -e "\n# VM settings"
     echo "vm:"
-    echo -e "  name: debian           # VM name"
-    echo -e "  cpu: 2                 # CPU allocation in vCPUs"
-    echo -e "  memory: 2048           # Memory allocation in MiB"
-    echo -e "  diskSize: 20           # Virtual disk size in GB"
+    echo "  name: debian           # VM name"
+    echo "  cpu: 2                 # CPU allocation in vCPUs"
+    echo "  memory: 2048           # Memory allocation in MiB"
+    echo "  diskSize: 20           # Virtual disk size in GB"
+    echo "  network: default       # 'default' uses libvirt NAT network, otherwise specify name of bridge"
+    echo "  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance"
+    echo -e "\n# OS settings"
     echo "os:"
-    echo -e "  version: debian12      # Debian version"
-    echo -e "  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image"
-    echo -e "  hostName: debian       # VM host name"
-    echo -e "  domainName: debian     # VM domain name"
+    echo "  version: debian12      # OS version"
+    echo "  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image"
+    echo "  hostName: debian       # VM host name"
+    echo "  domainName: debian     # VM domain name"
+    echo -e "\n# User settings"
     echo "user:"
-    echo -e "  fullName: debian-user  # Debian user full name (does not have to be a real name)"
-    echo -e "  userName: debian-user  # Debian username"
+    echo "  fullName: debian-user  # Linux user full name (does not have to be a real name)"
+    echo "  userName: debian-user  # Linux username"
     echo -e "\nIf no argument is passed, this help message is printed."
 }
 
@@ -50,14 +55,14 @@ create_vm(){
     virt-install \
     --virt-type kvm \
     --name $vm_name  \
-    --os-variant debian12 \
+    --os-variant $os_version \
     --location $disk_image \
     --disk size=${disk_size} \
     --vcpus $cpu \
     --cpu host-passthrough \
     --ram $memory \
     --graphics none \
-    --network bridge=virbr0,model=virtio \
+    --network $network \
     --initrd-inject=preseed.cfg \
     --extra-args='console=tty0 console=ttyS0,115200n8 serial' \
     --noreboot
@@ -84,18 +89,22 @@ main(){
     fi 
     
     log "Parsing '${1}'..."
+    # VM settings
     local vm_name=$(cat $1 | yq -r .vm.name)
     local cpu=$(cat $1 | yq -r .vm.cpu)
     local memory=$(cat $1 | yq -r .vm.memory)
     local disk_size=$(cat $1 | yq -r .vm.diskSize)
-    local debian_version=$(cat $1 | yq -r .os.version)
+    local network=$(cat $1 | yq -r .vm.network)
+    # OS settings
+    local os_version=$(cat $1 | yq -r .os.version)
     local disk_image=$(cat $1 | yq -r .os.diskImage)
     local host_name=$(cat $1 | yq -r .os.hostName)
     local domain_name=$(cat $1 | yq -r .os.domainName)
+    # User settings
     local full_name=$(cat $1 | yq -r .user.fullName)
     local username=$(cat $1 | yq -r .user.userName)
 
-    if [[ -z $vm_name ]] || [[ -z $cpu ]] || [[ -z $memory ]] || [[ -z $disk_size ]] || [[ -z $debian_version ]] || [[ -z $disk_image ]] || [[ -z $host_name ]] || [[ -z $domain_name ]] || [[ -z $full_name ]] || [[ -z $username ]]; then
+    if [[ -z $vm_name ]] || [[ -z $cpu ]] || [[ -z $memory ]] || [[ -z $disk_size ]] || [[ -z $os_version ]] || [[ -z $disk_image ]] || [[ -z $host_name ]] || [[ -z $domain_name ]] || [[ -z $full_name ]] || [[ -z $username ]]; then
         catch "${LINENO}: Variable not set."
     fi
 
