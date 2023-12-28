@@ -14,6 +14,11 @@ Note that the YAML file passed to the script does not need to be named `values.y
 ```
 # Example YAML file
 
+# Host settings
+host:
+  connection: qemu:///system # Points to local libvirtd
+  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
+
 # VM settings
 vm:
   name: debian           # VM name
@@ -27,6 +32,7 @@ vm:
 os:
   version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
 
@@ -35,7 +41,6 @@ user:
   fullName: debian-user  # Linux user full name (does not have to be a real name)
   userName: debian-user  # Linux username
 
-If no argument is passed, this help message is printed.
 ```
 
 # Installation
@@ -56,12 +61,24 @@ If no argument is passed, this help message is printed.
     pip3 install yq
     ```
 
-3) Ensure that you've downloaded the disk image of the [Debian version](https://www.debian.org/download) you want to install on the VM.
+3) Ensure that you have Docker installed since the script requires it to create a web server to host the Debian preseed fie for remote installations.
+- Docker can be installed on Debian-based distros with the following command:
+  ```
+  sudo apt install docker.io
+  ```
+- And on RPM-based distros with the following commands:
+  ```
+  sudo yum install -y yum-utils
+  sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  ```
+
+4) Ensure that you've downloaded the disk image of the [Debian version](https://www.debian.org/download) you want to install on the VM.
 - You can move this disk image into `/var/lib/libvirt/images` for better organization.
 
-4) Clone this repo by running `git clone https://github.com/sabiq-khan/create-vm.git`.
+5) Clone this repo by running `git clone https://github.com/sabiq-khan/create-vm.git`.
 
-5) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
+6) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
 
 # Usage
 If the script is run with no parameters, it prints a help message.
@@ -77,6 +94,11 @@ Accepts a single argument, the path to a YAML file with the following structure:
 
 # Example YAML file
 
+# Host settings
+host:
+  connection: qemu:///system # Points to local libvirtd
+  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
+
 # VM settings
 vm:
   name: debian           # VM name
@@ -90,6 +112,7 @@ vm:
 os:
   version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
 
@@ -104,19 +127,25 @@ If no argument is passed, this help message is printed.
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
 ```
 $ cat <<-"EOF" > values.yaml
+# Host settings
+host:
+  connection: qemu:///system # Points to local libvirtd
+  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
+
 # VM settings
 vm:
   name: debian           # VM name
   cpu: 2                 # CPU allocation in vCPUs
   memory: 2048           # Memory allocation in MiB
   diskSize: 20           # Virtual disk size in GB
-  network: network=default       # Enables libvirt NAT networking
+  network: default       # 'default' uses libvirt NAT network, otherwise specify name of bridge
   #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
 
 # OS settings
 os:
   version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
 
@@ -167,7 +196,7 @@ Domain 'debian' started
 $ virsh net-dhcp-leases default
  Expiry Time           MAC address         Protocol   IP address          Hostname     Client ID or DUID
 -------------------------------------------------------------------------------------------------------------------------------------------------
- 2023-12-22 18:54:07   xx:xx:xx:xx:xx:xx   ipv4       xxx.xxx.xxx.xxx/xx   debian xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:Xx:xx
+ 2023-12-22 18:54:07   xx:xx:xx:xx:xx:xx   ipv4       xxx.xxx.xxx.xxx/xx   debian xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx
 
 $ ssh debian-user@xxx.xxx.xxx.xxx
 The authenticity of host 'xxx.xxx.xxx.xxx (xxx.xxx.xxx.xxx)' can't be established.
@@ -190,3 +219,8 @@ debian-user@debian:~$ exit
 logout
 Connection to xxx.xxx.xxx.xxx closed.
 ```
+
+Note that when creating VMs on remote hosts where `libvirtd` is listening on a TCP socket:
+- The `host.connection` field in the YAML file should be set to `qemu+tcp://<dns-name>:<libvirtd-port>/system`
+- The `os.diskImage` field should point to a Debian installer URL instead of a local `.iso` file, e.g. https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/
+- The script will use Docker to create an nginx web server hosting the preseed file on port 8080 so that the VM can access the preseed file. 

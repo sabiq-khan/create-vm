@@ -4,10 +4,18 @@ set -o pipefail
 set -o errtrace
 
 log(){
-    echo "[$(date -Iseconds)] ${1}"
+    echo "[$(date -Iseconds)][${0}] ${1}"
+}
+
+cleanup(){
+    if [[ -n $(docker ps -a | tail +2 | awk '{print $2}' | grep ^preseed-server$ || echo "") ]]; then
+        log "Stopping preseed server..."
+        docker rm -f preseed-server > /dev/null
+    fi
 }
 
 catch(){
+    cleanup
     log "ERROR: An error occurred on line ${1}" 1>&2
     exit 1
 }
@@ -18,6 +26,10 @@ help(){
     echo "ARGUMENTS:"
     echo -e "Accepts a single argument, the path to a YAML file with the following structure:\n"
     echo "# Example YAML file"
+    echo -e "\n# Host settings"
+    echo "host:"
+    echo "  connection: qemu:///system # Points to local libvirtd"
+    echo "  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host"
     echo -e "\n# VM settings"
     echo "vm:"
     echo "  name: debian           # VM name"
@@ -30,6 +42,7 @@ help(){
     echo "os:"
     echo "  version: debian12      # OS version"
     echo "  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image"
+    echo "  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory"
     echo "  hostName: debian       # VM host name"
     echo "  domainName: debian     # VM domain name"
     echo -e "\n# User settings"
@@ -50,9 +63,23 @@ create_vm(){
 
     log "Creating Debian preseed..."
     create_preseed
+    local preseed=preseed.cfg
+    local initrd_inject="--initrd-inject ${preseed}"
+    local extra_args="console=tty0 console=ttyS0,115200n8 serial"
+
+    # For VM creation on a remote host
+    if [[ -n $(echo $connection | grep ^qemu+tcp || echo "") ]]; then
+        log "Starting preseed server on port 8080 for remote installation..."
+        docker build . -f ./preseed.Dockerfile -t preseed-server
+        docker run -d -p 8080:80 --name preseed-server preseed-server
+        preseed=http://$(hostname --fqdn):8080/preseed.cfg
+        initrd_inject=""
+        extra_args="${extra_args} auto=true priority=critical preseed/url=${preseed} debian-installer/locale=en_US keyboard-configuration/xkb-keymap=us"
+    fi
 
     log "Creating VM ${vm_name}..."
     virt-install \
+    --connect $connection \
     --virt-type kvm \
     --name $vm_name  \
     --os-variant $os_version \
@@ -63,8 +90,8 @@ create_vm(){
     --ram $memory \
     --graphics none \
     --network $network \
-    --initrd-inject=preseed.cfg \
-    --extra-args='console=tty0 console=ttyS0,115200n8 serial' \
+    $initrd_inject \
+    --extra-args "${extra_args}" \
     --noreboot
 
     log "Checking state of VM ${vm_name}..."
@@ -89,6 +116,8 @@ main(){
     fi 
     
     log "Parsing '${1}'..."
+    # Host settings
+    local connection=$(cat $1 | yq -r .host.connection)
     # VM settings
     local vm_name=$(cat $1 | yq -r .vm.name)
     local cpu=$(cat $1 | yq -r .vm.cpu)
@@ -104,11 +133,12 @@ main(){
     local full_name=$(cat $1 | yq -r .user.fullName)
     local username=$(cat $1 | yq -r .user.userName)
 
-    if [[ -z $vm_name ]] || [[ -z $cpu ]] || [[ -z $memory ]] || [[ -z $disk_size ]] || [[ -z $os_version ]] || [[ -z $disk_image ]] || [[ -z $host_name ]] || [[ -z $domain_name ]] || [[ -z $full_name ]] || [[ -z $username ]]; then
+    if [[ -z $connection ]] || [[ -z $vm_name ]] || [[ -z $cpu ]] || [[ -z $memory ]] || [[ -z $disk_size ]] || [[ -z $network ]] || [[ -z $os_version ]] || [[ -z $disk_image ]] || [[ -z $host_name ]] || [[ -z $domain_name ]] || [[ -z $full_name ]] || [[ -z $username ]]; then
         catch "${LINENO}: Variable not set."
     fi
 
     create_vm
+    cleanup
 }
 
 # =============================================================================

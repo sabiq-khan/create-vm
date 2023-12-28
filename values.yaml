@@ -1,3 +1,8 @@
+# Host settings
+host:
+  connection: qemu:///system # Points to local libvirtd
+  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
+
 # VM settings
 vm:
   name: debian           # VM name
@@ -11,6 +16,7 @@ vm:
 os:
   version: debian12      # OS version
   diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory
   hostName: debian       # VM host name
   domainName: debian     # VM domain name
 
