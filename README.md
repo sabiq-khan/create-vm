@@ -9,7 +9,7 @@
 ```
 [create-vm.sh](./create-vm.sh) creates a headless Debian VM using [libvirt](https://libvirt.org/), [QEMU](https://www.qemu.org/), and [KVM](https://linux-kvm.org/page/Main_Page). The script creates a [preseed.cfg](https://wiki.debian.org/DebianInstaller/Preseed) file that automates the installation of Debian on the VM, forgoing the need to manually click through the installation options. 
 
-[preseed-template.cfg](./preseed-template.cfg) provides a template for the `preseed.cfg` file created during the execution of the script. [values.yaml](./values.yaml) is an example of a YAML file that can be passed as an argument to the script. The script reads the parameters passed in the YAML file to substitute placeholder values in `preseed-template.cfg` in order to create the final `preseed.cfg` file. 
+[preseed-template.cfg](./preseed-template.cfg) provides a template for the `preseed.cfg` file created during the execution of the script. [values.yaml](./values.yaml) is an example of a YAML file that can be passed as an argument to the script with the `--file` option.
 
 [preseed.Dockerfile](./preseed.Dockerfile) is used to create a web server that serves the `preseed.cfg` file on port 8080 for cases where VMs being created on remote hosts need to be able to access preseed file. 
 
@@ -81,16 +81,51 @@ user:
 5) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
 
 # Usage
-If the script is run with no parameters, it prints a help message.
+## Options
+If the script is run with no parameters or with the options `-h` or `--help`, it prints a help message.
 ```
 $ ./create-vm.sh
 
-USAGE: ./create-vm.sh [yaml_file_with_parameters]
+USAGE: ./create-vm.sh [OPTIONS] [--file FILE]
 
-Creates a Debian VM with the parameters in the provided YAML file.
+Creates a Debian VM with the parameters provided via options or YAML file.
 
 ARGUMENTS:
-Accepts a single argument, the path to a YAML file with the following structure:
+
+-h, --help, [none]      Prints this help message
+
+--connection            A connection string specifying the libvirtd instance to connect to. 
+                        To connect to a local instance of libvirtd, use 'qemu:///system'
+                        To connect to libvirtd listening on a TCP socket on another machine, use 'qemu+tcp://domain-name/system'
+
+--vm-name               The desired name for the VM, by which it will be identified in the libvirt back end
+
+--cpu                   The number of vCPUs desired for the VM
+
+--memory                The amount of memory in MiB desired for the VM
+
+--disk-size             The amount of virtual disk space in GB desired for the VM
+
+--network               The networking configuration for the VM
+                        To make the VM reachable only by other VMs on the same host, use 'network=default'
+                        To make the VM reachable over the LAN, use 'bridge=<bridge-interface-name>'
+
+--os-version            The Debian version to install on the VM, e.g. 'debian12'
+
+--disk-image            The location of the installation medium
+                        Specify a file path to a local '.iso' file, e.g. /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso
+                        OR, specify the URL of a Debian installer, e.g. https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/
+
+--host-name             The host name of the VM, by which it is identified on its own OS
+
+--domain-name           The domain name of the VM, by which it is identified to other devices on its network
+
+--full-name             The full name of the Linux user being created during the Debian installation
+                        Does not have to be an actual name, e.g. 'debian-user'
+
+--username              The username of the Linux user being created during the Debian installation, e.g. 'debian-user'
+
+-f, --file              A YAML file containing values for the above parameters
 
 # Example YAML file
 
@@ -121,9 +156,9 @@ user:
   fullName: debian-user  # Linux user full name (does not have to be a real name)
   userName: debian-user  # Linux username
 
-If no argument is passed, this help message is printed.
 ```
 
+## Creating a VM
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
 ```
 $ cat <<-"EOF" > values.yaml
@@ -156,6 +191,7 @@ user:
 
 EOF
 ```
+
 Then, run the script and pass the path to the YAML file as an argument:
 ```
 $ ./create-vm.sh values.yaml
@@ -190,6 +226,24 @@ Security DOI:   0
 [2023-12-22T17:53:39-08:00] Use 'virsh' or 'virt-manager' to see more information.
 ```
 
+Alternatively, the same result can be achieved with the CLI options. These options can help call `create-vm.sh` from other scripts without the need to create a YAML file. 
+```
+$ ./create-vm.sh \
+--connection "qemu:///system" \
+--vm-name debian \
+--cpu 2 \
+--memory 2048 \
+--disk-size 20 \
+--network network=default \
+--os-version debian12 \
+--disk-image /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso \
+--host-name debian \
+--domain-name debian \
+--full-name debian-user \
+--username debian-user \
+```
+
+## Connecting to VM
 After the VM is successfully created, the script prints your Debian username and password to the screen. The [preseed file](./preseed-template.cfg#L53) includes a directive to install `sshd` on the VM. Thus, you can use [virsh](https://www.libvirt.org/manpages/virsh.html) to boot the VM and find its IP and then `ssh` into it.
 ```
 $ virsh start debian
@@ -222,8 +276,26 @@ logout
 Connection to xxx.xxx.xxx.xxx closed.
 ```
 
-Note that when creating VMs on remote hosts where `libvirtd` is listening on a TCP socket:
+## Remote VM Creation
+When creating VMs on remote hosts where `libvirtd` is listening on a TCP socket:
 - The `host.connection` field in the YAML file should be set to `qemu+tcp://<dns-name>:<libvirtd-port>/system`
 - The `os.diskImage` field should point to a Debian installer URL instead of a local `.iso` file, e.g. https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/
 - The script will use Docker to create an nginx web server hosting the preseed file on port 8080 so that the VM can access the preseed file.
-- Ensure that the VM will have connectivity to the web server so it can access the preseed file.  
+- Ensure that the VM will have connectivity to the web server so it can access the preseed file.
+
+Alternatively, the following CLI options can be used:
+```
+$ ./create-vm.sh \
+--connection "qemu+tcp://domain-name/system" \
+--vm-name debian \
+--cpu 2 \
+--memory 2048 \
+--disk-size 20 \
+--network bridge=br0 \
+--os-version debian12 \
+--disk-image https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ \
+--host-name debian \
+--domain-name debian \
+--full-name debian-user \
+--username debian-user \
+```
