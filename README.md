@@ -81,47 +81,16 @@ user:
 5) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
 
 # Usage
-If the script is run with no parameters, it prints a help message.
+If the script is run with no parameters or with the options `-h` or `--help`, it prints a help message.
 ```
 $ ./create-vm.sh
 
-USAGE: ./create-vm.sh [yaml_file_with_parameters]
+USAGE: ./create-vm.sh [OPTIONS] [--file FILE]
 
-Creates a Debian VM with the parameters in the provided YAML file.
+Creates a Debian VM with the parameters provided via options or YAML file.
 
 ARGUMENTS:
-Accepts a single argument, the path to a YAML file with the following structure:
-
-# Example YAML file
-
-# Host settings
-host:
-  connection: qemu:///system # Points to local libvirtd
-  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
-
-# VM settings
-vm:
-  name: debian           # VM name
-  cpu: 2                 # CPU allocation in vCPUs
-  memory: 2048           # Memory allocation in MiB
-  diskSize: 20           # Virtual disk size in GB
-  network: default       # 'default' uses libvirt NAT network, otherwise specify name of bridge
-  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
-
-# OS settings
-os:
-  version: debian12      # OS version
-  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
-  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory
-  hostName: debian       # VM host name
-  domainName: debian     # VM domain name
-
-# User settings
-user:
-  fullName: debian-user  # Linux user full name (does not have to be a real name)
-  userName: debian-user  # Linux username
-
-If no argument is passed, this help message is printed.
+...
 ```
 
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
