@@ -8,9 +8,11 @@ log(){
 }
 
 cleanup(){
+    # Terminates preseed server if it is still running
     if [[ -n $(docker ps -a | tail +2 | awk '{print $2}' | grep ^preseed-server$ || echo "") ]]; then
         log "Stopping preseed server..."
         docker rm -f preseed-server > /dev/null
+        log "Preseed server stopped."
     fi
 }
 
@@ -52,9 +54,19 @@ help(){
     echo -e "\nIf no argument is passed, this help message is printed."
 }
 
+# Creates a preseed file based on 'preseed-template.cfg'
 create_preseed(){
     cat preseed-template.cfg | sed -e "s|\$HOST_NAME|${host_name}|g" -e "s|\$DOMAIN_NAME|${domain_name}|g" -e "s|\$FULL_NAME|${full_name}|g" -e "s|\$USERNAME|${username}|g" -e "s|\$PASSWORD|${password}|g" > preseed.cfg
     log "'preseed.cfg' created!"
+}
+
+# Creates a web server that serves preseed on port 8080
+serve_preseed(){
+    log "Creating preseed server to allow remote access to '${preseed}'..."
+    docker build . -f ./preseed.Dockerfile -t preseed-server
+    log "Starting preseed server on port 8080..."
+    docker run -d -p 8080:80 --name preseed-server preseed-server
+    log "Preseed server started!"
 }
 
 create_vm(){
@@ -69,10 +81,8 @@ create_vm(){
 
     # For VM creation on a remote host
     if [[ -n $(echo $connection | grep ^qemu+tcp || echo "") ]]; then
-        log "Starting preseed server on port 8080 for remote installation..."
-        docker build . -f ./preseed.Dockerfile -t preseed-server
-        docker run -d -p 8080:80 --name preseed-server preseed-server
-        preseed=http://$(hostname --fqdn):8080/preseed.cfg
+        serve_preseed
+        preseed=http://$(hostname --fqdn):8080/${preseed}
         initrd_inject=""
         extra_args="${extra_args} auto=true priority=critical preseed/url=${preseed} debian-installer/locale=en_US keyboard-configuration/xkb-keymap=us"
     fi
@@ -102,6 +112,8 @@ create_vm(){
 
     log "VM $vm_name successfully created!"
     log "VM name: ${vm_name}"
+    log "VM host name: ${host_name}"
+    log "VM domain name: ${domain_name}"
     log "Debian username: ${username}"
     log "Debian password: ${password}"
     log "Use virsh or virt-manager for more information."

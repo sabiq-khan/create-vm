@@ -1,7 +1,7 @@
 # Host settings
 host:
   connection: qemu:///system # Points to local libvirtd
-  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
+  #connection: qemu+tcp://domain-name/system # Points to remote libvirtd on specified host
 
 # VM settings
 vm:
