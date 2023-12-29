@@ -1,5 +1,6 @@
 # VM Creation Script
 ```
+.
 ├── create-vm.sh
 ├── preseed.Dockerfile
 ├── preseed-template.cfg
@@ -182,6 +183,8 @@ Security DOI:   0
 
 [2023-12-22T17:53:39-08:00] VM successfully created!
 [2023-12-22T17:53:39-08:00] VM name: debian
+[2023-12-22T17:53:39-08:00] VM host name: debian
+[2023-12-22T17:53:39-08:00] VM domain name: debian
 [2023-12-22T17:53:39-08:00] Debian username: debian-user
 [2023-12-22T17:53:39-08:00] Debian password: xxxxxxxx
 [2023-12-22T17:53:39-08:00] Use 'virsh' or 'virt-manager' to see more information.
@@ -222,4 +225,5 @@ Connection to xxx.xxx.xxx.xxx closed.
 Note that when creating VMs on remote hosts where `libvirtd` is listening on a TCP socket:
 - The `host.connection` field in the YAML file should be set to `qemu+tcp://<dns-name>:<libvirtd-port>/system`
 - The `os.diskImage` field should point to a Debian installer URL instead of a local `.iso` file, e.g. https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/
-- The script will use Docker to create an nginx web server hosting the preseed file on port 8080 so that the VM can access the preseed file. 
+- The script will use Docker to create an nginx web server hosting the preseed file on port 8080 so that the VM can access the preseed file.
+- Ensure that the VM will have connectivity to the web server so it can access the preseed file.  
