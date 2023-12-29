@@ -9,7 +9,7 @@
 ```
 [create-vm.sh](./create-vm.sh) creates a headless Debian VM using [libvirt](https://libvirt.org/), [QEMU](https://www.qemu.org/), and [KVM](https://linux-kvm.org/page/Main_Page). The script creates a [preseed.cfg](https://wiki.debian.org/DebianInstaller/Preseed) file that automates the installation of Debian on the VM, forgoing the need to manually click through the installation options. 
 
-[preseed-template.cfg](./preseed-template.cfg) provides a template for the `preseed.cfg` file created during the execution of the script. [values.yaml](./values.yaml) is an example of a YAML file that can be passed as an argument to the script. The script reads the parameters passed in the YAML file to substitute placeholder values in `preseed-template.cfg` in order to create the final `preseed.cfg` file. 
+[preseed-template.cfg](./preseed-template.cfg) provides a template for the `preseed.cfg` file created during the execution of the script. [values.yaml](./values.yaml) is an example of a YAML file that can be passed as an argument to the script with the `--file` option.
 
 [preseed.Dockerfile](./preseed.Dockerfile) is used to create a web server that serves the `preseed.cfg` file on port 8080 for cases where VMs being created on remote hosts need to be able to access preseed file. 
 
@@ -81,6 +81,7 @@ user:
 5) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
 
 # Usage
+## Options
 If the script is run with no parameters or with the options `-h` or `--help`, it prints a help message.
 ```
 $ ./create-vm.sh
@@ -157,6 +158,7 @@ user:
 
 ```
 
+## Creating a VM
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
 ```
 $ cat <<-"EOF" > values.yaml
@@ -189,6 +191,7 @@ user:
 
 EOF
 ```
+
 Then, run the script and pass the path to the YAML file as an argument:
 ```
 $ ./create-vm.sh values.yaml
@@ -223,6 +226,24 @@ Security DOI:   0
 [2023-12-22T17:53:39-08:00] Use 'virsh' or 'virt-manager' to see more information.
 ```
 
+Alternatively, the same result can be achieved with the CLI options. These options can help call `create-vm.sh` from other scripts without the need to create a YAML file. 
+```
+$ ./create-vm.sh \
+--connection "qemu:///system" \
+--vm-name debian \
+--cpu 2 \
+--memory 2048 \
+--disk-size 20 \
+--network network=default \
+--os-version debian12 \
+--disk-image /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso \
+--host-name debian \
+--domain-name debian \
+--full-name debian-user \
+--username debian-user \
+```
+
+## Connecting to VM
 After the VM is successfully created, the script prints your Debian username and password to the screen. The [preseed file](./preseed-template.cfg#L53) includes a directive to install `sshd` on the VM. Thus, you can use [virsh](https://www.libvirt.org/manpages/virsh.html) to boot the VM and find its IP and then `ssh` into it.
 ```
 $ virsh start debian
@@ -255,8 +276,26 @@ logout
 Connection to xxx.xxx.xxx.xxx closed.
 ```
 
-Note that when creating VMs on remote hosts where `libvirtd` is listening on a TCP socket:
+## Remote VM Creation
+When creating VMs on remote hosts where `libvirtd` is listening on a TCP socket:
 - The `host.connection` field in the YAML file should be set to `qemu+tcp://<dns-name>:<libvirtd-port>/system`
 - The `os.diskImage` field should point to a Debian installer URL instead of a local `.iso` file, e.g. https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/
 - The script will use Docker to create an nginx web server hosting the preseed file on port 8080 so that the VM can access the preseed file.
-- Ensure that the VM will have connectivity to the web server so it can access the preseed file.  
+- Ensure that the VM will have connectivity to the web server so it can access the preseed file.
+
+Alternatively, the following CLI options can be used:
+```
+$ ./create-vm.sh \
+--connection "qemu+tcp://domain-name/system" \
+--vm-name debian \
+--cpu 2 \
+--memory 2048 \
+--disk-size 20 \
+--network bridge=br0 \
+--os-version debian12 \
+--disk-image https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ \
+--host-name debian \
+--domain-name debian \
+--full-name debian-user \
+--username debian-user \
+```
