@@ -90,7 +90,71 @@ USAGE: ./create-vm.sh [OPTIONS] [--file FILE]
 Creates a Debian VM with the parameters provided via options or YAML file.
 
 ARGUMENTS:
-...
+
+-h, --help, [none]      Prints this help message
+
+--connection            A connection string specifying the libvirtd instance to connect to. 
+                        To connect to a local instance of libvirtd, use 'qemu:///system'
+                        To connect to libvirtd listening on a TCP socket on another machine, use 'qemu+tcp://domain-name/system'
+
+--vm-name               The desired name for the VM, by which it will be identified in the libvirt back end
+
+--cpu                   The number of vCPUs desired for the VM
+
+--memory                The amount of memory in MiB desired for the VM
+
+--disk-size             The amount of virtual disk space in GB desired for the VM
+
+--network               The networking configuration for the VM
+                        To make the VM reachable only by other VMs on the same host, use 'network=default'
+                        To make the VM reachable over the LAN, use 'bridge=<bridge-interface-name>'
+
+--os-version            The Debian version to install on the VM, e.g. 'debian12'
+
+--disk-image            The location of the installation medium
+                        Specify a file path to a local '.iso' file, e.g. /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso
+                        OR, specify the URL of a Debian installer, e.g. https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/
+
+--host-name             The host name of the VM, by which it is identified on its own OS
+
+--domain-name           The domain name of the VM, by which it is identified to other devices on its network
+
+--full-name             The full name of the Linux user being created during the Debian installation
+                        Does not have to be an actual name, e.g. 'debian-user'
+
+--username              The username of the Linux user being created during the Debian installation, e.g. 'debian-user'
+
+-f, --file              A YAML file containing values for the above parameters
+
+# Example YAML file
+
+# Host settings
+host:
+  connection: qemu:///system # Points to local libvirtd
+  #connection: qemu+tcp://localhost/system # Points to remote libvirtd on specified host
+
+# VM settings
+vm:
+  name: debian           # VM name
+  cpu: 2                 # CPU allocation in vCPUs
+  memory: 2048           # Memory allocation in MiB
+  diskSize: 20           # Virtual disk size in GB
+  network: default       # 'default' uses libvirt NAT network, otherwise specify name of bridge
+  #network: bridge=br0   # Enables bridge networking, bridge must already exist in advance
+
+# OS settings
+os:
+  version: debian12      # OS version
+  diskImage: /var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso  # Path to disk image
+  #diskImage: https://deb.debian.org/debian/dists/bookworm/main/installer-amd64/ # Link to disk image root directory
+  hostName: debian       # VM host name
+  domainName: debian     # VM domain name
+
+# User settings
+user:
+  fullName: debian-user  # Linux user full name (does not have to be a real name)
+  userName: debian-user  # Linux username
+
 ```
 
 To create a VM, fill out the parameters in `values.yaml` or whatever YAML file you choose to pass to the script.
