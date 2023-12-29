@@ -1,7 +1,7 @@
 # VM Creation Script
 ```
-.
 ├── create-vm.sh
+├── preseed.Dockerfile
 ├── preseed-template.cfg
 ├── README.md
 └── values.yaml
@@ -9,6 +9,8 @@
 [create-vm.sh](./create-vm.sh) creates a headless Debian VM using [libvirt](https://libvirt.org/), [QEMU](https://www.qemu.org/), and [KVM](https://linux-kvm.org/page/Main_Page). The script creates a [preseed.cfg](https://wiki.debian.org/DebianInstaller/Preseed) file that automates the installation of Debian on the VM, forgoing the need to manually click through the installation options. 
 
 [preseed-template.cfg](./preseed-template.cfg) provides a template for the `preseed.cfg` file created during the execution of the script. [values.yaml](./values.yaml) is an example of a YAML file that can be passed as an argument to the script. The script reads the parameters passed in the YAML file to substitute placeholder values in `preseed-template.cfg` in order to create the final `preseed.cfg` file. 
+
+[preseed.Dockerfile](./preseed.Dockerfile) is used to create a web server that serves the `preseed.cfg` file on port 8080 for cases where VMs being created on remote hosts need to be able to access preseed file. 
 
 Note that the YAML file passed to the script does not need to be named `values.yaml` or located in the same directory. Any YAML file with the following structure can be passed as an argument:
 ```
@@ -61,7 +63,7 @@ user:
     pip3 install yq
     ```
 
-3) Ensure that you have Docker installed since the script requires it to create a web server to host the Debian preseed fie for remote installations.
+3) Ensure that you have [Docker](https://docs.docker.com/desktop/install/linux-install/) installed since the script requires it to create a web server to host the Debian preseed fie for remote installations.
 - Docker can be installed on Debian-based distros with the following command:
   ```
   sudo apt install docker.io
@@ -73,12 +75,9 @@ user:
   sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   ```
 
-4) Ensure that you've downloaded the disk image of the [Debian version](https://www.debian.org/download) you want to install on the VM.
-- You can move this disk image into `/var/lib/libvirt/images` for better organization.
+4) Clone this repo by running `git clone https://github.com/sabiq-khan/create-vm.git`.
 
-5) Clone this repo by running `git clone https://github.com/sabiq-khan/create-vm.git`.
-
-6) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
+5) Navigate to to the `create-vm` directory and make the script executable by running `chmod u+x create-vm.sh`.
 
 # Usage
 If the script is run with no parameters, it prints a help message.
