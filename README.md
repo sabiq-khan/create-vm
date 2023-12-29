@@ -58,6 +58,11 @@ user:
     ```
     sudo dnf install @virtualization
     ```
+- After installing the above packages, run the following command to add your user to the `libvirt` group so that root access will not be required when the script makes calls to `libvirt` APIs. 
+  ```
+  sudo usermod -aG libvirt $username
+  ```
+
 2) Ensure that you have `yq` installed since the script requires it to parse the YAML file. 
 - `yq` can be installed with the [following command](https://pypi.org/project/yq/):
     ```
@@ -75,6 +80,11 @@ user:
   sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   ```
+- After installing Docker, run the following command to add your user to the `docker` group so root access will not be required when the script calls Docker CLI commands:
+  ```
+  sudo usermod -aG docker $username
+  ```
+- Reboot your system to apply the above change. 
 
 4) Clone this repo by running `git clone https://github.com/sabiq-khan/create-vm.git`.
 
